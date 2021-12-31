@@ -51,5 +51,5 @@ if __name__ == "__main__":
     plt.xlabel("Kfold Variations")
     plt.ylabel("Accuracies")
     plt.title("SVM Classification with kfold")
-    plt.savefig(f'../graphs/svm_kfold_{kfold_repeat * kfold_split}.png')
+    plt.savefig(f'../Graphs/svm_kfold_{kfold_repeat * kfold_split}.png')
     # plt.show()
