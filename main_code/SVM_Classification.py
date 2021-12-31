@@ -1,8 +1,12 @@
 import numpy as np
 from sklearn.utils import shuffle
-from sklearn.model_selection import KFold, cross_validate, RepeatedKFold
+from sklearn.model_selection import cross_validate, RepeatedKFold
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
+import seaborn as sns
+import matplotlib.pyplot  as  plt
+
+sns.set(style='darkgrid')
 
 if __name__ == "__main__":
     X_train = np.load(f"../dataset/X_train.npy")
@@ -11,14 +15,32 @@ if __name__ == "__main__":
     Y_test = np.load(f"../dataset/y_test.npy")
 
     X, Y = shuffle(X_train, Y_train, random_state=0)
-    kf = KFold(n_splits=5, shuffle=False)
-    rkf = RepeatedKFold(n_splits=5, n_repeats=2, random_state=42)
+
+    kfold_split = 5
+    kfold_repeat = 2
+    rkf = RepeatedKFold(n_splits=kfold_split, n_repeats=kfold_repeat, random_state=42)
     clf = SVC(kernel='linear', C=1, random_state=2)
 
     cv_results = cross_validate(clf, X, Y, cv=rkf, return_estimator=True)
     print(f"validation accuracy after kfold: {cv_results['test_score']}")
-    max_accuracy_index = np.argmax(cv_results["test_score"])
     rfc_fit = cv_results['estimator']
 
-    y_pred = rfc_fit[max_accuracy_index].predict(X_test)
-    print(f"test dataset accuracy with best svm model: {accuracy_score(Y_test, y_pred)}")
+    y_ax_test = []
+    for svm_fit in rfc_fit:
+        y_pred = svm_fit.predict(X_test)
+        y_ax_test.append(accuracy_score(Y_test, y_pred))
+    y_ax_test = np.array(y_ax_test)
+
+    print(f"validation accuracy after kfold: {y_ax_test}")
+
+    x_ax = np.arange(1, 11, dtype=int)
+    y_ax_val = cv_results['test_score']
+
+    sns.lineplot(x=x_ax, y=y_ax_val, marker="o", err_style="bars")
+    sns.lineplot(x=x_ax, y=y_ax_test, marker="o", err_style="bars")
+    plt.legend(["Validation accuracy", "Test accuracy"])
+    plt.xlabel("Kfold Variations")
+    plt.ylabel("Accuracies")
+    plt.title("SVM Classification with kfold")
+    plt.savefig(f'../Graphs/svm_kfold_{kfold_repeat*kfold_split}.png')
+    # plt.show()
