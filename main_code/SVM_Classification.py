@@ -21,8 +21,9 @@ if __name__ == "__main__":
     rkf = RepeatedKFold(n_splits=kfold_split, n_repeats=kfold_repeat, random_state=42)
     clf = SVC(kernel='linear', C=1, random_state=2)
 
-    cv_results = cross_validate(clf, X, Y, cv=rkf, return_estimator=True)
-    print(f"validation accuracy after kfold: {cv_results['test_score']}")
+    cv_results = cross_validate(clf, X, Y, cv=rkf, return_train_score=True, return_estimator=True)
+    print(f"Training accuracy after kfold: {cv_results['train_score']}")
+    print(f"Validation accuracy after kfold: {cv_results['test_score']}")
     rfc_fit = cv_results['estimator']
 
     y_ax_test = []
@@ -31,14 +32,16 @@ if __name__ == "__main__":
         y_ax_test.append(accuracy_score(Y_test, y_pred))
     y_ax_test = np.array(y_ax_test)
 
-    print(f"validation accuracy after kfold: {y_ax_test}")
+    print(f"Test accuracy after kfold: {y_ax_test}")
 
     x_ax = np.arange(1, 11, dtype=int)
     y_ax_val = cv_results['test_score']
+    y_ax_train = cv_results['train_score']
 
-    sns.lineplot(x=x_ax, y=y_ax_val, marker="o", err_style="bars")
-    sns.lineplot(x=x_ax, y=y_ax_test, marker="o", err_style="bars")
-    plt.legend(["Validation accuracy", "Test accuracy"])
+    sns.lineplot(x=x_ax, y=y_ax_train, marker="o")
+    sns.lineplot(x=x_ax, y=y_ax_val, marker="o")
+    sns.lineplot(x=x_ax, y=y_ax_test, marker="o")
+    plt.legend(["Training accuracy", "Validation accuracy", "Test accuracy"])
     plt.xlabel("Kfold Variations")
     plt.ylabel("Accuracies")
     plt.title("SVM Classification with kfold")
